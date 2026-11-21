@@ -16,13 +16,14 @@ canvas{display:block;width:100%;height:100%;transform:translateZ(0);will-change:
 .icon-btn:active{transform:scale(.92)}
 .overlay{position:absolute;inset:0;background:rgba(255,255,255,.95);display:flex;flex-direction:column;justify-content:center;align-items:center;padding:18px;z-index:25;overflow-y:auto}
 #start-screen{background:rgba(255,255,255,.78);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+#over-screen{background:rgba(255,255,255,.9);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
 .hd{display:none!important}
 .logo{font-size:32px;font-weight:900;color:#0f172a;margin-bottom:6px;letter-spacing:1px}
 .logo span{color:#ef4444}
 .sub{font-size:12px;color:#475569;margin-bottom:14px;text-align:center}
 .card{width:100%;max-width:350px;background:#ffffff;border:1.5px solid #e2e8f0;border-radius:18px;padding:12px;margin-bottom:14px;box-shadow:0 8px 24px rgba(15,23,42,.08)}
 .card-title{font-size:13px;font-weight:700;color:#0284c7;margin-bottom:8px;display:flex;justify-content:space-between}
-.lb-list{max-height:175px;overflow-y:auto}
+.lb-list{max-height:165px;overflow-y:auto}
 .lb-row{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-radius:10px;margin-bottom:5px;background:#f8fafc;font-size:13px;color:#0f172a}
 .lb-row.me{background:rgba(2,132,199,.12);border:1px solid #0284c7}
 .lb-user{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
@@ -68,7 +69,7 @@ canvas{display:block;width:100%;height:100%;transform:translateZ(0);will-change:
 <div class="lb-list" id="lb-start">در حال دریافت...</div>
 </div>
 <button class="btn btn-play" onclick="startGame()">شروع بازی</button>
-<button class="btn btn-shop" onclick="openShop()">🛒 فروشگاه رنگ توپ‌ها (⭐ <span id="menu-stars">0</span>)</button>
+<button class="btn btn-shop" onclick="openShop('start')">🛒 فروشگاه رنگ توپ‌ها (⭐ <span id="menu-stars">0</span>)</button>
 <div class="brand-tag" onclick="openChannel()">🎮 اختصاصی کانال <b>@gamee_balee</b></div>
 </div>
 
@@ -96,6 +97,7 @@ canvas{display:block;width:100%;height:100%;transform:translateZ(0);will-change:
 <div class="lb-list" id="lb-over"></div>
 </div>
 <button class="btn btn-play" onclick="startGame()">🔄 بازی مجدد</button>
+<button class="btn btn-shop" onclick="openShop('over')">🛒 فروشگاه رنگ توپ‌ها (⭐ <span id="over-stars">0</span>)</button>
 <button class="btn btn-share" onclick="shareScore()">📤 کل‌کل و ارسال رکورد</button>
 <div class="brand-tag" onclick="openChannel()">🎮 اختصاصی کانال <b>@gamee_balee</b></div>
 </div>
@@ -132,6 +134,7 @@ let best=parseInt(localStorage.getItem("sw_best")||"0",10);
 let stars=parseInt(localStorage.getItem("sw_stars")||"0",10);
 let owned=JSON.parse(localStorage.getItem("sw_owned")||"[0]");
 let curSkin=parseInt(localStorage.getItem("sw_skin")||"0",10);
+let shopOrigin="start";
 let lb=[];
 
 const SKINS=[
@@ -147,14 +150,24 @@ function updStars(){
 localStorage.setItem("sw_stars",stars);
 document.getElementById("hud-stars").innerText=stars;
 document.getElementById("menu-stars").innerText=stars;
+document.getElementById("over-stars").innerText=stars;
 document.getElementById("shop-stars").innerText=stars;
 }
 updStars();
 document.getElementById("hud-best").innerText=best;
 function toast(m){const t=document.getElementById("toast");t.innerText=m;t.style.opacity="1";setTimeout(()=>t.style.opacity="0",2000)}
 
-function openShop(){renderShop();document.getElementById("shop-screen").classList.remove("hd")}
-function closeShop(){document.getElementById("shop-screen").classList.add("hd")}
+function openShop(from="start"){
+shopOrigin=from;
+renderShop();
+document.getElementById("shop-screen").classList.remove("hd");
+}
+function closeShop(){
+document.getElementById("shop-screen").classList.add("hd");
+if(shopOrigin==="over"){
+document.getElementById("over-screen").classList.remove("hd");
+}
+}
 function renderShop(){
 updStars();
 document.getElementById("skins-grid").innerHTML=SKINS.map((sk,i)=>{
@@ -191,7 +204,6 @@ const h=lb.length?lb.slice(0,10).map((p,idx)=>`<div class="lb-row ${p.id===usr.i
 document.getElementById("lb-start").innerHTML=h;document.getElementById("lb-over").innerHTML=h;
 }
 
-// موتور صوتی
 let snd=true,ac=null,nextNoteTime=0,beatStep=0,bgmRunning=false;
 const BASS=[130.8,130.8,164.8,146.8,130.8,130.8,196.0,164.8];
 const LEAD=[523.2,0,659.2,784.0,659.2,0,587.3,523.2];
@@ -294,7 +306,6 @@ dustTimer=0;
 }
 resetGameState();
 
-// افزایش نرم و تدریجی سرعت تا دیرتر تند شود
 function getFallSpeed(currentScore){
 const baseSpeed=285;
 const gradualBoost=Math.pow(Math.max(0,currentScore),0.78)*4.2;
@@ -395,6 +406,7 @@ function startGame(){
 document.getElementById("start-screen").classList.add("hd");
 document.getElementById("over-screen").classList.add("hd");
 document.getElementById("pause-screen").classList.add("hd");
+document.getElementById("shop-screen").classList.add("hd");
 score=0;
 resetGameState();
 st="play";
@@ -423,6 +435,7 @@ stopBGM();
 resetGameState();
 document.getElementById("over-screen").classList.add("hd");
 document.getElementById("pause-screen").classList.add("hd");
+document.getElementById("shop-screen").classList.add("hd");
 document.getElementById("start-screen").classList.remove("hd");
 syncLB(0);
 }
@@ -449,6 +462,7 @@ if(score>best){
 best=score;
 localStorage.setItem("sw_best",best);
 }
+updStars();
 document.getElementById("end-score").innerText=score;
 document.getElementById("end-best").innerText=best;
 setTimeout(()=>{
@@ -514,7 +528,7 @@ spawnGap-=previewMove;
 if(spawnGap<=0)spawnGap=spawnNextWave();
 for(let i=bars.length-1;i>=0;i--){bars[i].y+=previewMove;if(bars[i].y>H+60)bars.splice(i,1)}
 for(let i=greens.length-1;i>=0;i--){greens[i].y+=previewMove;if(greens[i].y>H+60)greens.splice(i,1)}
-for(let i=starsList.length-1;i>=0;i--){starsList[i].y+=previewMove;if(starsList[i].y>H+60)starsList.splice(i,1)}
+for(let i=starsList.length-1;i>=0;i--){starsList[i].y+=previewMove;if(starsList[i].y>H+60)starsList[i].splice(i,1)}
 if(Math.sin(now*0.0022)>0.88&&!switching){
 const startX=ballX;
 side=1-side;
