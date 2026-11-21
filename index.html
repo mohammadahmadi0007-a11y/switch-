@@ -191,7 +191,6 @@ const h=lb.length?lb.slice(0,10).map((p,idx)=>`<div class="lb-row ${p.id===usr.i
 document.getElementById("lb-start").innerHTML=h;document.getElementById("lb-over").innerHTML=h;
 }
 
-// موتور صوتی
 let snd=true,ac=null,nextNoteTime=0,beatStep=0,bgmRunning=false;
 const BASS=[130.8,130.8,164.8,146.8,130.8,130.8,196.0,164.8];
 const LEAD=[523.2,0,659.2,784.0,659.2,0,587.3,523.2];
@@ -209,8 +208,7 @@ const o=ac.createOscillator(),g=ac.createGain();
 o.type=t;o.frequency.value=f;
 g.gain.setValueAtTime(v,when);
 g.gain.exponentialRampToValueAtTime(.001,when+d);
-o.connect(g);g.connect(ac.destination);
-o.start(when);o.stop(when+d);
+o.connect(g);g.connect(ac.destination);o.start(when);o.stop(when+d);
 }catch(e){}
 }
 function beep(f,d,t="sine",v=0.12){
@@ -257,7 +255,6 @@ startBGM();
 document.addEventListener("visibilitychange",onVisChange);
 window.addEventListener("pagehide",()=>{stopBGM();if(ac&&ac.state==="running")ac.suspend().catch(()=>{})});
 
-// بوم بازی
 const cv=document.getElementById("cv"),ctx=cv.getContext("2d");
 let W=360,H=640,DPR=1,WALL=14,BALL_R=14,BALL_Y=450;
 
@@ -296,6 +293,35 @@ dustTimer=0;
 }
 resetGameState();
 
+// بررسی اینکه نقطه (gx, gy) روی مسیر حرکت توپ نباشد تا راه عبور هیچ‌وقت مسدود نشود
+function isLaneBlocked(gx,gy,size){
+const leftLaneX=WALL+BALL_R;
+const rightLaneX=W-WALL-BALL_R;
+const half=size/2+BALL_R+6;
+
+// مسدود نکردن ریل دیوار چپ و راست
+if(Math.abs(gx-leftLaneX)<half||Math.abs(gx-rightLaneX)<half){
+return true;
+}
+
+// مسدود نکردن عرض بلوک‌های هم‌سطح یا نزدیک
+for(const b of bars){
+const nearY=Math.abs(gy-(b.y+b.h/2))<54;
+const overBar=gx+half>b.x&&gx-half<b.x+b.w;
+if(nearY&&overBar)return true;
+}
+
+// فاصله ایمن از ستاره‌ها و سایر مکعب‌های سبز
+for(const s of starsList){
+if(Math.hypot(gx-s.x,gy-s.y)<44)return true;
+}
+for(const g of greens){
+if(Math.hypot(gx-g.x,gy-g.y)<46)return true;
+}
+
+return false;
+}
+
 function spawnNextWave(){
 stepCount++;
 const leftEdge=WALL;
@@ -303,7 +329,6 @@ const rightEdge=W-WALL;
 const playWidth=rightEdge-leftEdge;
 const barH=18;
 
-// تنوع سمت بلوک‌های مشکی با حاشیه آبی بدون قفل کردن مسیر
 let fromLeft;
 if(lastSide===-1){
 fromLeft=Math.random()>0.5;
@@ -314,9 +339,8 @@ fromLeft=(lastSide===1);
 }
 lastSide=fromLeft?1:0;
 
-// عرض‌های متغیر مثل ویدیو: کوتاه، متوسط یا بلندتر
-const ratio=0.30+Math.random()*0.40;
-const barW=Math.max(54,Math.min(playWidth*0.72,playWidth*ratio));
+const ratio=0.30+Math.random()*0.38;
+const barW=Math.max(54,Math.min(playWidth*0.68,playWidth*ratio));
 const barY=-28;
 
 if(fromLeft){
@@ -325,24 +349,33 @@ bars.push({x:leftEdge,y:barY,w:barW,h:barH,passed:false});
 bars.push({x:rightEdge-barW,y:barY,w:barW,h:barH,passed:false});
 }
 
-// ستاره طلایی دقیقاً در فضای باز عمودی بین بلوک‌ها
 if(stepCount%2===0){
 const starX=W/2;
 const starY=-98;
 starsList.push({x:starX,y:starY,taken:false});
 }
 
-// از امتیاز ۱۵ به بعد مثل ویدیو، مربع‌های مشکی با حاشیه سبز نئونی در نقاط متنوع مسیر اضافه می‌شوند
+// مکعب‌های سبز فقط در نقاطی قرار می‌گیرند که مسیر دو دیوار و عبور توپ را مسدود نکنند
 if(score>=15&&stepCount%2===1){
-const count=(score>=22&&Math.random()>0.45)?2:1;
+const count=(score>=22&&Math.random()>0.5)?2:1;
+const safeLeft=WALL+BALL_R*2.4;
+const safeRight=W-WALL-BALL_R*2.4;
 for(let i=0;i<count;i++){
-const pad=WALL+BALL_R*2.3;
-const gx=pad+Math.random()*Math.max(20,W-pad*2);
-const gy=-62-i*78;
-const overlapsBar=bars.some(b=>gx>b.x-18&&gx<b.x+b.w+18&&Math.abs(gy-(b.y+b.h/2))<38);
-const overlapsStar=starsList.some(s=>Math.hypot(gx-s.x,gy-s.y)<36);
-if(!overlapsBar&&!overlapsStar){
+const gy=-68-i*76;
+let placed=false;
+for(let attempt=0;attempt<8;attempt++){
+const gx=safeLeft+Math.random()*Math.max(20,safeRight-safeLeft);
+if(!isLaneBlocked(gx,gy,22)){
 greens.push({x:gx,y:gy,size:22});
+placed=true;
+break;
+}
+}
+if(!placed&&Math.abs((W/2)-(WALL+BALL_R))>BALL_R*2.2){
+const midX=W/2;
+if(!isLaneBlocked(midX,gy,22)){
+greens.push({x:midX,y:gy,size:22});
+}
 }
 }
 }
@@ -475,7 +508,6 @@ if(shake>0.25){
 ctx.translate((Math.random()-0.5)*shake,(Math.random()-0.5)*shake);
 }
 
-// دیواره‌های آبی روشن چپ و راست مثل ویدیو
 ctx.fillStyle="#38bdf8";
 ctx.fillRect(0,0,WALL,H);
 ctx.fillRect(W-WALL,0,WALL,H);
@@ -527,7 +559,6 @@ trails[trails.length-1].x2=ballX;
 }
 }
 
-// ذرات ریز سیاه/خاکستری که هنگام چسبیدن توپ به دیوار پایین می‌ریزند
 if(!switching){
 dustTimer+=dt;
 if(dustTimer>0.028){
@@ -605,7 +636,6 @@ if(s.y>H+60)starsList.splice(i,1);
 }
 }
 
-// عدد بزرگ امتیاز در بالای صفحه
 if(st==="play"){
 ctx.fillStyle="#0f172a";
 ctx.font="900 44px Arial, sans-serif";
@@ -613,24 +643,20 @@ ctx.textAlign="center";
 ctx.fillText(String(score),W/2,112);
 }
 
-// بلوک‌های مشکی با حاشیه آبی
 for(let i=0;i<bars.length;i++){
 const b=bars[i];
 drawBorderedRect(b.x,b.y,b.w,b.h,"#09090b","#2563eb",3);
 }
 
-// مربع‌های مشکی با حاشیه سبز نئونی
 for(let i=0;i<greens.length;i++){
 const g=greens[i],half=g.size/2;
 drawBorderedRect(g.x-half,g.y-half,g.size,g.size,"#09090b","#22c55e",3);
 }
 
-// ستاره‌های طلایی
 for(let i=0;i<starsList.length;i++){
 if(!starsList[i].taken)drawStarIcon(starsList[i].x,starsList[i].y,12);
 }
 
-// دنباله حرکتی قرمز پشت توپ
 const sk=SKINS[curSkin];
 for(let i=trails.length-1;i>=0;i--){
 const tr=trails[i];
@@ -646,7 +672,6 @@ ctx.restore();
 }
 }
 
-// ذرات ریز
 for(let i=particles.length-1;i>=0;i--){
 const p=particles[i];
 p.x+=p.vx*dt;
@@ -662,7 +687,6 @@ ctx.fill();
 ctx.restore();
 }
 
-// توپ اصلی با هاله قرمز
 if(st!=="over"){
 ctx.fillStyle=sk.glow;
 ctx.beginPath();
@@ -675,7 +699,6 @@ ctx.arc(ballX,BALL_Y,BALL_R,0,Math.PI*2);
 ctx.fill();
 }
 
-// متن شناور +1
 for(let i=floats.length-1;i>=0;i--){
 const f=floats[i];
 f.y-=48*dt;
