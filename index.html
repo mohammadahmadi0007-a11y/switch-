@@ -285,7 +285,7 @@ resize();
 
 let st="menu",score=0,side=0,ballX=WALL+BALL_R,targetX=WALL+BALL_R,switching=false;
 let trails=[],bars=[],greens=[],starsList=[],particles=[],floats=[];
-let shake=0,spawnGap=0,stepCount=0,lastSide=-1,dustTimer=0,lastT=0;
+let shake=0,spawnGap=0,stepCount=0,lastSide=-1,dustTimer=0,trailStampTimer=0,lastT=0;
 
 function resetGameState(){
 side=0;
@@ -303,6 +303,7 @@ spawnGap=110;
 stepCount=0;
 lastSide=-1;
 dustTimer=0;
+trailStampTimer=0;
 }
 resetGameState();
 
@@ -443,11 +444,11 @@ syncLB(0);
 const wrap=document.getElementById("wrap");
 wrap.addEventListener("pointerdown",e=>{
 if(e.target.closest("button")||e.target.closest(".overlay")||e.target.closest(".hud-left")||st!=="play")return;
-const startX=ballX;
 side=1-side;
 targetX=side===0?WALL+BALL_R:W-WALL-BALL_R;
 switching=true;
-trails.push({x1:startX,x2:startX,y:BALL_Y,life:1,moving:true});
+trailStampTimer=0;
+trails.push({x:ballX,y:BALL_Y,r:BALL_R*0.92,life:0.85,color:SKINS[curSkin].glow});
 beep(side===1?640:520,.05,"triangle",0.1);
 });
 
@@ -578,21 +579,19 @@ for(let i=bars.length-1;i>=0;i--){bars[i].y+=previewMove;if(bars[i].y>H+60)bars.
 for(let i=greens.length-1;i>=0;i--){greens[i].y+=previewMove;if(greens[i].y>H+60)greens.splice(i,1)}
 for(let i=starsList.length-1;i>=0;i--){starsList[i].y+=previewMove;if(starsList[i].y>H+60)starsList[i].splice(i,1)}
 if(Math.sin(now*0.0022)>0.88&&!switching){
-const startX=ballX;
 side=1-side;
 targetX=side===0?WALL+BALL_R:W-WALL-BALL_R;
 switching=true;
-trails.push({x1:startX,x2:startX,y:BALL_Y,life:1,moving:true});
+trailStampTimer=0;
+trails.push({x:ballX,y:BALL_Y,r:BALL_R*0.92,life:0.85,color:SKINS[curSkin].glow});
 }
 }
 
 if(st==="play"||st==="menu"){
-// سرعت جابه‌جایی افقی توپ بیشتر کندتر شده تا پرش بین دو دیوار نرم‌تر باشد
 const switchSpeed=1650*dt;
 if(Math.abs(targetX-ballX)<=switchSpeed){
 if(switching){
 switching=false;
-if(trails.length)trails[trails.length-1].moving=false;
 if(st==="play"){
 shake=4.5;
 beep(250,.035,"sine",0.07);
@@ -613,8 +612,10 @@ r:1.8+Math.random()*1.8
 ballX=targetX;
 }else{
 ballX+=Math.sign(targetX-ballX)*switchSpeed;
-if(trails.length&&trails[trails.length-1].moving){
-trails[trails.length-1].x2=ballX;
+trailStampTimer+=dt;
+if(trailStampTimer>=0.014){
+trailStampTimer=0;
+trails.push({x:ballX,y:BALL_Y,r:BALL_R*0.88,life:0.8,color:SKINS[curSkin].glow});
 }
 }
 
@@ -716,19 +717,18 @@ for(let i=0;i<starsList.length;i++){
 if(!starsList[i].taken)drawPuffy3DStar(starsList[i].x,starsList[i].y,13);
 }
 
-const sk=SKINS[curSkin];
+// رد دایره‌ای نرم و محوشونده پشت توپ بدون باقی ماندن روی صفحه
 for(let i=trails.length-1;i>=0;i--){
 const tr=trails[i];
-if(!tr.moving)tr.life-=3.2*dt;
+tr.life-=4.6*dt;
 if(tr.life<=0){trails.splice(i,1);continue}
-if(Math.abs(tr.x2-tr.x1)>1){
 ctx.save();
-ctx.globalAlpha=Math.max(0,Math.min(1,tr.life*0.35));
-ctx.fillStyle=sk.glow;
-const minX=Math.min(tr.x1,tr.x2),w=Math.abs(tr.x2-tr.x1);
-ctx.fillRect(minX,tr.y-BALL_R*0.65,w,BALL_R*1.3);
+ctx.globalAlpha=Math.max(0,Math.min(1,tr.life*0.42));
+ctx.fillStyle=tr.color;
+ctx.beginPath();
+ctx.arc(tr.x,tr.y,Math.max(2,tr.r*tr.life),0,Math.PI*2);
+ctx.fill();
 ctx.restore();
-}
 }
 
 for(let i=particles.length-1;i>=0;i--){
@@ -746,6 +746,7 @@ ctx.fill();
 ctx.restore();
 }
 
+const sk=SKINS[curSkin];
 if(st!=="over"){
 ctx.fillStyle=sk.glow;
 ctx.beginPath();
