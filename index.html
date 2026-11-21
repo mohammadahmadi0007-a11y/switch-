@@ -306,10 +306,11 @@ dustTimer=0;
 }
 resetGameState();
 
+// افزایش بسیار ملایم سرعت تا هم حس پرانرژی‌تری بدهد و هم دیرتر تند شود
 function getFallSpeed(currentScore){
-const baseSpeed=285;
-const gradualBoost=Math.pow(Math.max(0,currentScore),0.78)*4.2;
-return baseSpeed+Math.min(190,gradualBoost);
+const baseSpeed=302;
+const gradualBoost=Math.pow(Math.max(0,currentScore),0.78)*4.5;
+return baseSpeed+Math.min(205,gradualBoost);
 }
 
 function pickBarWidth(playWidth){
@@ -504,7 +505,7 @@ if(!lastT){lastT=now;return}
 let dt=(now-lastT)/1000;
 lastT=now;
 if(!Number.isFinite(dt)||dt<=0)dt=1/60;
-if(dt>0.04)dt=1/60;
+if(dt>0.035)dt=1/60;
 
 updateBGM();
 shake*=Math.pow(0.0005,dt);
@@ -523,12 +524,12 @@ ctx.fillRect(0,0,WALL,H);
 ctx.fillRect(W-WALL,0,WALL,H);
 
 if(st==="menu"){
-const previewMove=250*dt;
+const previewMove=260*dt;
 spawnGap-=previewMove;
 if(spawnGap<=0)spawnGap=spawnNextWave();
 for(let i=bars.length-1;i>=0;i--){bars[i].y+=previewMove;if(bars[i].y>H+60)bars.splice(i,1)}
 for(let i=greens.length-1;i>=0;i--){greens[i].y+=previewMove;if(greens[i].y>H+60)greens.splice(i,1)}
-for(let i=starsList.length-1;i>=0;i--){starsList[i].y+=previewMove;if(starsList[i].y>H+60)starsList[i].splice(i,1)}
+for(let i=starsList.length-1;i>=0;i--){starsList[i].y+=previewMove;if(starsList[i].y>H+60)starsList.splice(i,1)}
 if(Math.sin(now*0.0022)>0.88&&!switching){
 const startX=ballX;
 side=1-side;
@@ -539,7 +540,7 @@ trails.push({x1:startX,x2:startX,y:BALL_Y,life:1,moving:true});
 }
 
 if(st==="play"||st==="menu"){
-const switchSpeed=2750*dt;
+const switchSpeed=2850*dt;
 if(Math.abs(targetX-ballX)<=switchSpeed){
 if(switching){
 switching=false;
@@ -571,7 +572,7 @@ trails[trails.length-1].x2=ballX;
 
 if(!switching){
 dustTimer+=dt;
-if(dustTimer>0.026){
+if(dustTimer>0.025){
 dustTimer=0;
 const wx=side===0?WALL+2:W-WALL-2;
 particles.push({
