@@ -243,6 +243,22 @@ BALL_Y=H*0.72;
 }
 window.addEventListener("resize",resize);resize();
 
+// تابع سازگار با تمام نسخه‌های مرورگر و وب‌ویو به جای ctx.roundRect
+function drawRoundRect(x,y,w,h,r){
+const rad=Math.min(r,w/2,h/2);
+ctx.beginPath();
+ctx.moveTo(x+rad,y);
+ctx.lineTo(x+w-rad,y);
+ctx.quadraticCurveTo(x+w,y,x+w,y+rad);
+ctx.lineTo(x+w,y+h-rad);
+ctx.quadraticCurveTo(x+w,y+h,x+w-rad,y+h);
+ctx.lineTo(x+rad,y+h);
+ctx.quadraticCurveTo(x,y+h,x,y+h-rad);
+ctx.lineTo(x,y+rad);
+ctx.quadraticCurveTo(x,y,x+rad,y);
+ctx.closePath();
+}
+
 let st="menu",score=0,side=0,ballX=WALL+BALL_R,targetX=WALL+BALL_R,switching=false;
 let ribbons=[],blocks=[],squares=[],pickups=[],parts=[],floats=[];
 let shake=0,wallPulseL=0,wallPulseR=0,spawnDist=0,stepIdx=0,lastSide=-1,lastT=0;
@@ -359,9 +375,9 @@ requestAnimationFrame(loop);
 if(!lastT){lastT=now;return}
 let dt=(now-lastT)/1000;
 lastT=now;
-if(!Number.isFinite(dt)||dt<=0)dt=1/60;
-if(dt>0.033)dt=1/60;
+if(!Number.isFinite(dt)||dt<=0||dt>0.05)dt=1/60;
 
+try{
 updateBGM();
 shake*=Math.pow(0.0002,dt);
 wallPulseL=Math.max(0,wallPulseL-5*dt);
@@ -496,9 +512,12 @@ ctx.fillText(String(score),W/2,120);
 for(let i=0;i<blocks.length;i++){
 const b=blocks[i];
 ctx.fillStyle="#0f172a";
-ctx.beginPath();ctx.roundRect(b.x,b.y,b.w,b.h,4);ctx.fill();
-ctx.strokeStyle="#2563eb";ctx.lineWidth=3;
-ctx.beginPath();ctx.roundRect(b.x,b.y,b.w,b.h,4);ctx.stroke();
+drawRoundRect(b.x,b.y,b.w,b.h,4);
+ctx.fill();
+ctx.strokeStyle="#2563eb";
+ctx.lineWidth=3;
+drawRoundRect(b.x,b.y,b.w,b.h,4);
+ctx.stroke();
 }
 
 for(let i=0;i<squares.length;i++){
@@ -563,6 +582,7 @@ ctx.fillText(f.txt,f.x,f.y);
 }
 ctx.globalAlpha=1;
 ctx.restore();
+}catch(e){}
 }
 syncLB(0);requestAnimationFrame(loop);
 
