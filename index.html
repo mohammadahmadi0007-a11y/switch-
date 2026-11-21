@@ -471,12 +471,10 @@ syncLB(score);
 },480);
 }
 
-// ستاره سه‌بعدی و پفکی با حجم‌دهی، هایلایت روشن و سایه‌روشن نرم
 function drawPuffy3DStar(x,y,r){
 ctx.save();
 ctx.translate(x,y);
 
-// سایه نرم زیر ستاره روی بوم سفید
 ctx.save();
 ctx.translate(0,3.5);
 ctx.beginPath();
@@ -491,7 +489,6 @@ ctx.fillStyle="rgba(15,23,42,0.16)";
 ctx.fill();
 ctx.restore();
 
-// بدنه پفکی طلایی با گرادیان سه‌بعدی
 const grd=ctx.createRadialGradient(-r*0.28,-r*0.32,r*0.12,0,0,r*1.15);
 grd.addColorStop(0,"#fef08a");
 grd.addColorStop(0.45,"#facc15");
@@ -513,7 +510,6 @@ ctx.strokeStyle="#f59e0b";
 ctx.lineWidth=3.2;
 ctx.stroke();
 
-// هایلایت براق پفکی در قسمت بالایی ستاره
 ctx.fillStyle="rgba(255,255,255,0.55)";
 ctx.beginPath();
 ctx.ellipse(-r*0.12,-r*0.35,r*0.24,r*0.13,-0.35,0,Math.PI*2);
@@ -522,23 +518,25 @@ ctx.fill();
 ctx.restore();
 }
 
-// بلوک سیاه با حاشیه آبی بیشتر و سایه زیرین مطابق نسخه تلگرام[span_2](start_span)[span_2](end_span)
+// سایه نرم مشکی دور تا دور بلوک به جای سایه پله‌ای زیر بلوک
 function drawTelegramBlock(x,y,w,h){
 ctx.save();
 
-// سایه نرم در پایین و کنار بلوک[span_3](start_span)[span_3](end_span)
-ctx.fillStyle="rgba(30,64,175,0.22)";
-ctx.fillRect(x+2,y+5,w,h);
+// سایه نرم و یکدست سیاه در تمام اطراف بلوک
+ctx.shadowColor="rgba(0,0,0,0.34)";
+ctx.shadowBlur=12;
+ctx.shadowOffsetX=0;
+ctx.shadowOffsetY=2;
 
-// حاشیه آبی پررنگ و ضخیم‌تر[span_4](start_span)[span_4](end_span)
+// حاشیه آبی پررنگ و ضخیم‌تر اطراف بلوک
 ctx.fillStyle="#1d4ed8";
 ctx.fillRect(x-1,y-1,w+2,h+2);
 
-// هسته مشکی اصلی بلوک[span_5](start_span)[span_5](end_span)
+// هسته مشکی اصلی بلوک
 ctx.fillStyle="#09090b";
 ctx.fillRect(x+3,y+3,Math.max(0,w-6),Math.max(0,h-6));
 
-// نوار آبی درخشان در لبه پایینی برای عمق بیشتر
+// نوار آبی درخشان در لبه پایینی
 ctx.fillStyle="#3b82f6";
 ctx.fillRect(x,y+h-3,w,3);
 
@@ -707,19 +705,16 @@ ctx.textAlign="center";
 ctx.fillText(String(score),W/2,112);
 }
 
-// رسم بلوک‌های سیاه با حاشیه آبی بیشتر و سایه زیرین[span_6](start_span)[span_6](end_span)
 for(let i=0;i<bars.length;i++){
 const b=bars[i];
 drawTelegramBlock(b.x,b.y,b.w,b.h);
 }
 
-// رسم مکعب‌های سبز نئونی
 for(let i=0;i<greens.length;i++){
 const g=greens[i],half=g.size/2;
 drawBorderedRect(g.x-half,g.y-half,g.size,g.size,"#09090b","#22c55e",3);
 }
 
-// رسم ستاره‌های سه‌بعدی و پفکی
 for(let i=0;i<starsList.length;i++){
 if(!starsList[i].taken)drawPuffy3DStar(starsList[i].x,starsList[i].y,13);
 }
