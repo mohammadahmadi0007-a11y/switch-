@@ -293,46 +293,44 @@ dustTimer=0;
 }
 resetGameState();
 
-// انتخاب عرض بلوک به صورت متنوع: کوچک، متوسط یا بلند
+// محاسبه نرم و تدریجی سرعت حرکت موانع تا بازی خیلی دیرتر تند شود
+function getFallSpeed(currentScore){
+const baseSpeed=285;
+const gradualBoost=Math.pow(Math.max(0,currentScore),0.78)*4.2;
+return baseSpeed+Math.min(190,gradualBoost);
+}
+
 function pickBarWidth(playWidth){
 const roll=Math.random();
 if(roll<0.32){
-// بلوک کوچک
 return playWidth*(0.22+Math.random()*0.12);
 }
 if(roll<0.72){
-// بلوک متوسط
 return playWidth*(0.36+Math.random()*0.16);
 }
-// بلوک بلندتر (با حفظ مسیر امن)
 return playWidth*(0.54+Math.random()*0.14);
 }
 
-// بررسی ایمن بودن محل مکعب سبز: هیچ‌وقت روی خط پرواز دو دیوار و نزدیک سایر مکعب‌های سبز نباشد
 function isSafeGreenSpot(gx,gy,size){
 const leftRail=WALL+BALL_R;
 const rightRail=W-WALL-BALL_R;
 const clearRadius=size/2+BALL_R+12;
 
-// دور نگه داشتن از ریل دیوارها تا توپ روی دیوار راه باز داشته باشد
 if(Math.abs(gx-leftRail)<clearRadius||Math.abs(gx-rightRail)<clearRadius){
 return false;
 }
 
-// فاصله عمودی زیاد از سایر مکعب‌های سبز تا دو مکعب سبز نزدیک هم قرار نگیرند
 for(const g of greens){
 if(Math.abs(gy-g.y)<175)return false;
 if(Math.hypot(gx-g.x,gy-g.y)<95)return false;
 }
 
-// فاصله ایمن از بلوک‌های مشکی
 for(const b of bars){
 const nearY=Math.abs(gy-(b.y+b.h/2))<64;
 const overBar=gx+size/2+10>b.x&&gx-size/2-10<b.x+b.w;
 if(nearY&&overBar)return false;
 }
 
-// فاصله ایمن از ستاره‌ها
 for(const s of starsList){
 if(Math.hypot(gx-s.x,gy-s.y)<54)return false;
 }
@@ -366,12 +364,10 @@ bars.push({x:leftEdge,y:barY,w:barW,h:barH,passed:false});
 bars.push({x:rightEdge-barW,y:barY,w:barW,h:barH,passed:false});
 }
 
-// ستاره طلایی دقیقاً در مرکز افقی و در فضای باز بین موانع
 if(stepCount%2===0){
 starsList.push({x:W/2,y:-98,taken:false});
 }
 
-// فقط یک مکعب سبز در موج‌های فرد از امتیاز ۱۵ به بعد، دور از ریل دیوارها و بدون هم‌پوشانی نزدیک
 if(score>=15&&stepCount%3===1){
 const gy=-65;
 const minX=WALL+BALL_R*2.8;
@@ -387,7 +383,7 @@ break;
 }
 }
 
-return 185;
+return 190;
 }
 
 function spawnScatter(x,y,c,count,speed){
@@ -585,7 +581,7 @@ r:1.6+Math.random()*1.8
 }
 
 if(st==="play"){
-const fallSpeed=325+Math.min(220,score*3.6);
+const fallSpeed=getFallSpeed(score);
 const dyStep=fallSpeed*dt;
 spawnGap-=dyStep;
 if(spawnGap<=0){
