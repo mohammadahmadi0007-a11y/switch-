@@ -285,7 +285,7 @@ resize();
 
 let st="menu",score=0,side=0,ballX=WALL+BALL_R,targetX=WALL+BALL_R,switching=false;
 let trails=[],bars=[],greens=[],starsList=[],particles=[],floats=[];
-let shake=0,spawnGap=0,stepCount=0,lastSide=-1,dustTimer=0,lastT=0;
+let shake=0,spawnGap=0,stepCount=0,lastSide=-1,dustTimer=0,lastT=0,smoothDt=1/60;
 
 function resetGameState(){
 side=0;
@@ -306,7 +306,6 @@ dustTimer=0;
 }
 resetGameState();
 
-// افزایش بسیار ملایم سرعت تا هم حس پرانرژی‌تری بدهد و هم دیرتر تند شود
 function getFallSpeed(currentScore){
 const baseSpeed=302;
 const gradualBoost=Math.pow(Math.max(0,currentScore),0.78)*4.5;
@@ -502,10 +501,11 @@ ctx.strokeRect(x,y,w,h);
 function frame(now){
 requestAnimationFrame(frame);
 if(!lastT){lastT=now;return}
-let dt=(now-lastT)/1000;
+const rawDt=(now-lastT)/1000;
 lastT=now;
-if(!Number.isFinite(dt)||dt<=0)dt=1/60;
-if(dt>0.035)dt=1/60;
+const clampedDt=Math.max(0.002,Math.min(0.032,Number.isFinite(rawDt)?rawDt:1/60));
+smoothDt+=(clampedDt-smoothDt)*0.35;
+const dt=smoothDt;
 
 updateBGM();
 shake*=Math.pow(0.0005,dt);
@@ -529,7 +529,7 @@ spawnGap-=previewMove;
 if(spawnGap<=0)spawnGap=spawnNextWave();
 for(let i=bars.length-1;i>=0;i--){bars[i].y+=previewMove;if(bars[i].y>H+60)bars.splice(i,1)}
 for(let i=greens.length-1;i>=0;i--){greens[i].y+=previewMove;if(greens[i].y>H+60)greens.splice(i,1)}
-for(let i=starsList.length-1;i>=0;i--){starsList[i].y+=previewMove;if(starsList[i].y>H+60)starsList.splice(i,1)}
+for(let i=starsList.length-1;i>=0;i--){starsList[i].y+=previewMove;if(starsList[i].y>H+60)starsList[i].splice(i,1)}
 if(Math.sin(now*0.0022)>0.88&&!switching){
 const startX=ballX;
 side=1-side;
