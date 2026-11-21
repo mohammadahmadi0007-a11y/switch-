@@ -8,35 +8,37 @@
 *{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-tap-highlight-color:transparent;font-family:Arial,Tahoma,sans-serif}
 html,body{width:100%;height:100%;background:#0b1120;color:#0f172a;overflow:hidden}
 #wrap{position:relative;width:100%;max-width:480px;height:100%;margin:0 auto;background:#ffffff;overflow:hidden;touch-action:manipulation}
-canvas{display:block;width:100%;height:100%}
-.hud{position:absolute;top:0;left:0;right:0;height:52px;background:rgba(255,255,255,.92);border-bottom:1px solid rgba(15,23,42,.08);padding:0 14px;display:flex;justify-content:space-between;align-items:center;z-index:10;pointer-events:none}
+canvas{display:block;width:100%;height:100%;transform:translateZ(0);will-change:transform}
+.hud{position:absolute;top:0;left:0;right:0;height:52px;background:rgba(255,255,255,.92);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-bottom:1px solid rgba(15,23,42,.08);padding:0 14px;display:flex;justify-content:space-between;align-items:center;z-index:10;pointer-events:none}
 .hud-left{font-size:13px;color:#0f172a;font-weight:700;pointer-events:auto;cursor:pointer;display:flex;align-items:center;gap:10px}
 .hud-btns{display:flex;gap:8px;pointer-events:auto}
-.icon-btn{width:34px;height:34px;border-radius:50%;background:#f1f5f9;border:1px solid #cbd5e1;color:#0f172a;font-size:14px;display:flex;justify-content:center;align-items:center;cursor:pointer}
-.shop-fab{position:absolute;top:64px;left:20px;width:44px;height:44px;border-radius:13px;background:#ffffff;border:2px solid #0284c7;display:flex;flex-direction:column;justify-content:center;align-items:center;cursor:pointer;z-index:12;font-size:17px;box-shadow:0 4px 12px rgba(2,132,199,.18)}
-.shop-fab span{font-size:9px;color:#0284c7;font-weight:700;margin-top:1px}
+.icon-btn{width:34px;height:34px;border-radius:50%;background:#f1f5f9;border:1px solid #cbd5e1;color:#0f172a;font-size:14px;display:flex;justify-content:center;align-items:center;cursor:pointer;transition:transform .1s}
+.icon-btn:active{transform:scale(.92)}
 .overlay{position:absolute;inset:0;background:rgba(255,255,255,.95);display:flex;flex-direction:column;justify-content:center;align-items:center;padding:18px;z-index:25;overflow-y:auto}
-#start-screen{background:rgba(255,255,255,.78);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+#start-screen{background:rgba(255,255,255,.78);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
 .hd{display:none!important}
 .logo{font-size:32px;font-weight:900;color:#0f172a;margin-bottom:6px;letter-spacing:1px}
 .logo span{color:#ef4444}
 .sub{font-size:12px;color:#475569;margin-bottom:14px;text-align:center}
 .card{width:100%;max-width:350px;background:#ffffff;border:1.5px solid #e2e8f0;border-radius:18px;padding:12px;margin-bottom:14px;box-shadow:0 8px 24px rgba(15,23,42,.08)}
 .card-title{font-size:13px;font-weight:700;color:#0284c7;margin-bottom:8px;display:flex;justify-content:space-between}
-.lb-list{max-height:185px;overflow-y:auto}
+.lb-list{max-height:175px;overflow-y:auto}
 .lb-row{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-radius:10px;margin-bottom:5px;background:#f8fafc;font-size:13px;color:#0f172a}
 .lb-row.me{background:rgba(2,132,199,.12);border:1px solid #0284c7}
 .lb-user{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
 .av{width:28px;height:28px;border-radius:50%;display:flex;justify-content:center;align-items:center;font-weight:900;font-size:12px;color:#fff;flex-shrink:0;overflow:hidden}
 .av img{width:100%;height:100%;object-fit:cover}
 .lb-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}
-.btn{width:100%;max-width:350px;padding:13px;border:none;border-radius:14px;font-size:15px;font-weight:900;cursor:pointer;margin-bottom:9px}
+.btn{width:100%;max-width:350px;padding:13px;border:none;border-radius:14px;font-size:15px;font-weight:900;cursor:pointer;margin-bottom:9px;transition:transform .1s}
+.btn:active{transform:scale(.97)}
 .btn-play{background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;box-shadow:0 4px 14px rgba(2,132,199,.3)}
+.btn-shop{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;box-shadow:0 4px 14px rgba(217,119,6,.25)}
 .btn-share{background:#f1f5f9;color:#0f172a;font-size:13px;border:1px solid #cbd5e1}
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:350px;margin-bottom:12px}
 .stat{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:10px;text-align:center}
 .skins-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:350px;margin-bottom:14px}
-.sk-item{background:#f8fafc;border:2px solid #e2e8f0;border-radius:16px;padding:10px 6px;text-align:center;cursor:pointer}
+.sk-item{background:#f8fafc;border:2px solid #e2e8f0;border-radius:16px;padding:10px 6px;text-align:center;cursor:pointer;transition:transform .1s}
+.sk-item:active{transform:scale(.95)}
 .sk-item.active{border-color:#0284c7;background:rgba(2,132,199,.1)}
 .sk-dot{width:28px;height:28px;border-radius:50%;margin:0 auto 6px}
 .brand-tag{margin-top:6px;padding:6px 14px;border-radius:20px;background:#f8fafc;border:1px solid #e2e8f0;font-size:11px;color:#64748b;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
@@ -56,7 +58,6 @@ canvas{display:block;width:100%;height:100%}
 </div>
 </div>
 
-<div class="shop-fab" id="shop-btn" onclick="openShop()">🛒<span id="fab-stars">0⭐</span></div>
 <canvas id="cv"></canvas>
 
 <div class="overlay" id="start-screen">
@@ -67,7 +68,7 @@ canvas{display:block;width:100%;height:100%}
 <div class="lb-list" id="lb-start">در حال دریافت...</div>
 </div>
 <button class="btn btn-play" onclick="startGame()">شروع بازی</button>
-<button class="btn btn-share" onclick="openShop()">🛒 فروشگاه رنگ توپ‌ها (⭐ <span id="menu-stars">0</span>)</button>
+<button class="btn btn-shop" onclick="openShop()">🛒 فروشگاه رنگ توپ‌ها (⭐ <span id="menu-stars">0</span>)</button>
 <div class="brand-tag" onclick="openChannel()">🎮 اختصاصی کانال <b>@gamee_balee</b></div>
 </div>
 
@@ -145,7 +146,6 @@ const SKINS=[
 function updStars(){
 localStorage.setItem("sw_stars",stars);
 document.getElementById("hud-stars").innerText=stars;
-document.getElementById("fab-stars").innerText=stars+"⭐";
 document.getElementById("menu-stars").innerText=stars;
 document.getElementById("shop-stars").innerText=stars;
 }
@@ -191,6 +191,7 @@ const h=lb.length?lb.slice(0,10).map((p,idx)=>`<div class="lb-row ${p.id===usr.i
 document.getElementById("lb-start").innerHTML=h;document.getElementById("lb-over").innerHTML=h;
 }
 
+// موتور صوتی
 let snd=true,ac=null,nextNoteTime=0,beatStep=0,bgmRunning=false;
 const BASS=[130.8,130.8,164.8,146.8,130.8,130.8,196.0,164.8];
 const LEAD=[523.2,0,659.2,784.0,659.2,0,587.3,523.2];
@@ -255,13 +256,13 @@ startBGM();
 document.addEventListener("visibilitychange",onVisChange);
 window.addEventListener("pagehide",()=>{stopBGM();if(ac&&ac.state==="running")ac.suspend().catch(()=>{})});
 
-const cv=document.getElementById("cv"),ctx=cv.getContext("2d");
+const cv=document.getElementById("cv"),ctx=cv.getContext("2d",{alpha:false});
 let W=360,H=640,DPR=1,WALL=14,BALL_R=14,BALL_Y=450;
 
 function resize(){
 W=Math.max(260,window.innerWidth>480?480:window.innerWidth);
 H=Math.max(360,window.innerHeight);
-DPR=Math.min(2.5,window.devicePixelRatio||1);
+DPR=Math.min(3,window.devicePixelRatio||1);
 cv.width=Math.round(W*DPR);
 cv.height=Math.round(H*DPR);
 ctx.setTransform(DPR,0,0,DPR,0,0);
@@ -293,7 +294,7 @@ dustTimer=0;
 }
 resetGameState();
 
-// محاسبه نرم و تدریجی سرعت حرکت موانع تا بازی خیلی دیرتر تند شود
+// افزایش نرم و تدریجی سرعت تا دیرتر تند شود
 function getFallSpeed(currentScore){
 const baseSpeed=285;
 const gradualBoost=Math.pow(Math.max(0,currentScore),0.78)*4.2;
@@ -302,12 +303,8 @@ return baseSpeed+Math.min(190,gradualBoost);
 
 function pickBarWidth(playWidth){
 const roll=Math.random();
-if(roll<0.32){
-return playWidth*(0.22+Math.random()*0.12);
-}
-if(roll<0.72){
-return playWidth*(0.36+Math.random()*0.16);
-}
+if(roll<0.32)return playWidth*(0.22+Math.random()*0.12);
+if(roll<0.72)return playWidth*(0.36+Math.random()*0.16);
 return playWidth*(0.54+Math.random()*0.14);
 }
 
@@ -319,22 +316,18 @@ const clearRadius=size/2+BALL_R+12;
 if(Math.abs(gx-leftRail)<clearRadius||Math.abs(gx-rightRail)<clearRadius){
 return false;
 }
-
 for(const g of greens){
 if(Math.abs(gy-g.y)<175)return false;
 if(Math.hypot(gx-g.x,gy-g.y)<95)return false;
 }
-
 for(const b of bars){
 const nearY=Math.abs(gy-(b.y+b.h/2))<64;
 const overBar=gx+size/2+10>b.x&&gx-size/2-10<b.x+b.w;
 if(nearY&&overBar)return false;
 }
-
 for(const s of starsList){
 if(Math.hypot(gx-s.x,gy-s.y)<54)return false;
 }
-
 return true;
 }
 
@@ -436,7 +429,7 @@ syncLB(0);
 
 const wrap=document.getElementById("wrap");
 wrap.addEventListener("pointerdown",e=>{
-if(e.target.closest("button")||e.target.closest(".overlay")||e.target.closest(".hud-left")||e.target.closest(".shop-fab")||st!=="play")return;
+if(e.target.closest("button")||e.target.closest(".overlay")||e.target.closest(".hud-left")||st!=="play")return;
 const startX=ballX;
 side=1-side;
 targetX=side===0?WALL+BALL_R:W-WALL-BALL_R;
@@ -521,7 +514,7 @@ spawnGap-=previewMove;
 if(spawnGap<=0)spawnGap=spawnNextWave();
 for(let i=bars.length-1;i>=0;i--){bars[i].y+=previewMove;if(bars[i].y>H+60)bars.splice(i,1)}
 for(let i=greens.length-1;i>=0;i--){greens[i].y+=previewMove;if(greens[i].y>H+60)greens.splice(i,1)}
-for(let i=starsList.length-1;i>=0;i--){starsList[i].y+=previewMove;if(starsList[i].y>H+60)starsList[i].splice(i,1)}
+for(let i=starsList.length-1;i>=0;i--){starsList[i].y+=previewMove;if(starsList[i].y>H+60)starsList.splice(i,1)}
 if(Math.sin(now*0.0022)>0.88&&!switching){
 const startX=ballX;
 side=1-side;
@@ -532,7 +525,7 @@ trails.push({x1:startX,x2:startX,y:BALL_Y,life:1,moving:true});
 }
 
 if(st==="play"||st==="menu"){
-const switchSpeed=2600*dt;
+const switchSpeed=2750*dt;
 if(Math.abs(targetX-ballX)<=switchSpeed){
 if(switching){
 switching=false;
@@ -564,7 +557,7 @@ trails[trails.length-1].x2=ballX;
 
 if(!switching){
 dustTimer+=dt;
-if(dustTimer>0.028){
+if(dustTimer>0.026){
 dustTimer=0;
 const wx=side===0?WALL+2:W-WALL-2;
 particles.push({
