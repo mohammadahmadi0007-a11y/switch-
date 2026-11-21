@@ -253,12 +253,11 @@ shake=0;wallPulseL=0;wallPulseR=0;spawnT=0.15;lastPattern=-1;
 }
 resetWorld();
 
-// سیستم تولید ۸ الگوی کاملاً متنوع و غیرتکراری برای مسیر بازی
+// ۸ الگوی کاملاً متنوع و ۱۰۰٪ قابل عبور (همیشه حداقل یک دیوار باز است تا بازیکن بتواند عبور کند)
 function spawnPattern(){
 const minX=WALL,maxX=W-WALL,playW=maxX-minX;
 const h=22;
 
-// انتخاب الگوی جدید که دقیقاً با الگوی قبلی یکسان نباشد
 const maxPat=score<4?3:score<10?6:8;
 let pat=Math.floor(Math.random()*maxPat);
 if(pat===lastPattern)pat=(pat+1)%maxPat;
@@ -267,8 +266,8 @@ lastPattern=pat;
 const pickSide=Math.random()>0.5;
 
 if(pat===0){
-// الگوی ۱: بلوک یک‌طرفه با عرض تصادفی + ستاره در مسیر فرار
-const w=playW*(0.42+Math.random()*0.28);
+// الگوی ۱: بلوک یک‌طرفه با عرض متغیر (کوتاه تا بلند) + ستاره در مسیر آزاد
+const w=playW*(0.40+Math.random()*0.32);
 if(pickSide){
 blocks.push({x:minX,y:-35,w,h,passed:false});
 if(Math.random()<0.65)pickups.push({x:maxX-BALL_R-18,y:-35,hit:false});
@@ -280,7 +279,7 @@ return 0.72;
 }
 
 if(pat===1){
-// الگوی ۲: تله چسبیده به دیوار (مکعب سبز نئونی یا بلوک کوتاه روی ریل حرکت توپ)
+// الگوی ۲: مکعب سبز نئونی چسبیده به یک دیوار (مجبورت می‌کند به دیوار مقابل بپری)
 const sqSz=26;
 if(pickSide){
 squares.push({x:minX+sqSz/2+2,y:-40,sz:sqSz,passed:false});
@@ -293,80 +292,84 @@ return 0.65;
 }
 
 if(pat===2){
-// الگوی ۳: دروازه تنگ (دو بلوک از چپ و راست هم‌زمان و یک شکاف در وسط یا کنار)
-const gapW=BALL_R*4.4;
-const leftW=(playW-gapW)*(0.2+Math.random()*0.6);
-const rightW=playW-gapW-leftW;
-blocks.push({x:minX,y:-35,w:leftW,h,passed:false});
-blocks.push({x:maxX-rightW,y:-35,w:rightW,h,passed:true});
-pickups.push({x:minX+leftW+gapW/2,y:-35,hit:false});
-return 0.82;
+// الگوی ۳: رگبار سه‌تایی سریع (چپ -> راست -> چپ یا برعکس) با فاصله حساب‌شده
+const w=playW*0.48;
+if(pickSide){
+blocks.push({x:minX,y:-35,w,h,passed:false});
+blocks.push({x:maxX-w,y:-170,w,h,passed:false});
+blocks.push({x:minX,y:-305,w,h,passed:false});
+pickups.push({x:W/2,y:-170,hit:false});
+}else{
+blocks.push({x:maxX-w,y:-35,w,h,passed:false});
+blocks.push({x:minX,y:-170,w,h,passed:false});
+blocks.push({x:maxX-w,y:-305,w,h,passed:false});
+pickups.push({x:W/2,y:-170,hit:false});
+}
+return 1.55;
 }
 
 if(pat===3){
 // الگوی ۴: زیگزاگ دوتایی سریع (رفت و برگشت فوری)
-const w1=playW*(0.52+Math.random()*0.15);
-const w2=playW*(0.52+Math.random()*0.15);
+const w1=playW*(0.52+Math.random()*0.16);
+const w2=playW*(0.52+Math.random()*0.16);
 if(pickSide){
 blocks.push({x:minX,y:-35,w:w1,h,passed:false});
-blocks.push({x:maxX-w2,y:-175,w:w2,h,passed:false});
-pickups.push({x:W/2,y:-105,hit:false});
+blocks.push({x:maxX-w2,y:-180,w:w2,h,passed:false});
+pickups.push({x:W/2,y:-108,hit:false});
 }else{
 blocks.push({x:maxX-w1,y:-35,w:w1,h,passed:false});
-blocks.push({x:minX,y:-175,w:w2,h,passed:false});
-pickups.push({x:W/2,y:-105,hit:false});
+blocks.push({x:minX,y:-180,w:w2,h,passed:false});
+pickups.push({x:W/2,y:-108,hit:false});
 }
 return 1.15;
 }
 
 if(pat===4){
-// الگوی ۵: بلوک با میله چرخان زیر آن (دقیقاً مشابه ثانیه 0:08 ویدیو)
-const w=playW*(0.46+Math.random()*0.16);
+// الگوی ۵: بلوک همراه با میله چرخان زیر آن (سمت مقابل کاملاً باز است)
+const w=playW*(0.44+Math.random()*0.14);
 const dir=Math.random()>0.5?1:-1;
 if(pickSide){
 blocks.push({x:minX,y:-35,w,h,passed:false});
-spinners.push({x:minX+w*0.55,y:-35+h+2,len:48,ang:0.5,vr:dir*(2.8+Math.random()*1.2)});
+spinners.push({x:minX+w*0.52,y:-35+h+2,len:46,ang:0.5,vr:dir*(2.8+Math.random()*1.2)});
 }else{
 blocks.push({x:maxX-w,y:-35,w,h,passed:false});
-spinners.push({x:maxX-w*0.55,y:-35+h+2,len:48,ang:-0.5,vr:dir*(2.8+Math.random()*1.2)});
+spinners.push({x:maxX-w*0.52,y:-35+h+2,len:46,ang:-0.5,vr:dir*(2.8+Math.random()*1.2)});
 }
 pickups.push({x:W/2,y:-115,hit:false});
 return 0.92;
 }
 
 if(pat===5){
-// الگوی ۶: میدان مین مکعب‌های سبز نئونی با چیدمان تصادفی در عرض صفحه
+// الگوی ۶: مکعب‌های سبز نئونی معلق در مسیر پرش (تله بین دو دیوار)
 const count=score>18?3:2;
-const step=playW/(count+1);
-for(let i=1;i<=count;i++){
-const jitter=(Math.random()-0.5)*(step*0.45);
-const yOff=(i%2===0)?-35:-95;
-squares.push({x:minX+step*i+jitter,y:yOff,sz:24,passed:i===1?false:true});
+for(let i=0;i<count;i++){
+const rx=minX+BALL_R*2.6+Math.random()*(playW-BALL_R*5.2);
+squares.push({x:rx,y:-35-i*75,sz:24,passed:i===0?false:true});
 }
-pickups.push({x:minX+playW*(0.2+Math.random()*0.6),y:-145,hit:false});
-return 0.95;
+pickups.push({x:W/2,y:-35-count*75,hit:false});
+return 1.05;
 }
 
 if(pat===6){
-// الگوی ۷: پروانه چرخان بزرگ در مرکز مسیر (باید از کناره‌ها رد شوی)
+// الگوی ۷: پروانه چرخان در مرکز صفحه (هر دو دیوار چپ و راست امن هستند، پرش بینشان زمان‌بندی می‌خواهد)
 const dir=Math.random()>0.5?1:-1;
-spinners.push({x:W/2,y:-65,len:playW*0.34,ang:0,vr:dir*2.6,double:true});
+spinners.push({x:W/2,y:-65,len:playW*0.31,ang:0,vr:dir*2.5,double:true});
 pickups.push({x:pickSide?minX+BALL_R+16:maxX-BALL_R-16,y:-65,hit:false});
-return 0.9;
+return 0.92;
 }
 
-// الگوی ۸: ترکیب بلوک کوتاه و مکعب سبز در سمت مخالف (تله تغییر مسیر)
-const w=playW*0.45;
+// الگوی ۸: بلوک یک‌طرفه + مکعب سبز در سمت مقابل (ابتدا باید یک سمت بمانی و بلافاصله بپری)
+const w=playW*0.46;
 if(pickSide){
 blocks.push({x:minX,y:-35,w,h,passed:false});
-squares.push({x:maxX-24,y:-130,sz:25,passed:false});
-pickups.push({x:W/2,y:-82,hit:false});
+squares.push({x:maxX-22,y:-155,sz:24,passed:false});
+pickups.push({x:W/2,y:-95,hit:false});
 }else{
 blocks.push({x:maxX-w,y:-35,w,h,passed:false});
-squares.push({x:minX+24,y:-130,sz:25,passed:false});
-pickups.push({x:W/2,y:-82,hit:false});
+squares.push({x:minX+22,y:-155,sz:24,passed:false});
+pickups.push({x:W/2,y:-95,hit:false});
 }
-return 1.05;
+return 1.12;
 }
 
 function ringBoom(x,y,c){
@@ -514,7 +517,7 @@ if(st==="play"){
 const fallSpd=340+Math.min(260,score*4.2);
 spawnT-=dt;
 if(spawnT<=0){
-const delayFactor=Math.max(0.62,1-score*0.007);
+const delayFactor=Math.max(0.66,1-score*0.006);
 spawnT=spawnPattern()*delayFactor;
 }
 
