@@ -293,33 +293,51 @@ dustTimer=0;
 }
 resetGameState();
 
-// بررسی اینکه نقطه (gx, gy) روی مسیر حرکت توپ نباشد تا راه عبور هیچ‌وقت مسدود نشود
-function isLaneBlocked(gx,gy,size){
-const leftLaneX=WALL+BALL_R;
-const rightLaneX=W-WALL-BALL_R;
-const half=size/2+BALL_R+6;
-
-// مسدود نکردن ریل دیوار چپ و راست
-if(Math.abs(gx-leftLaneX)<half||Math.abs(gx-rightLaneX)<half){
-return true;
+// انتخاب عرض بلوک به صورت متنوع: کوچک، متوسط یا بلند
+function pickBarWidth(playWidth){
+const roll=Math.random();
+if(roll<0.32){
+// بلوک کوچک
+return playWidth*(0.22+Math.random()*0.12);
+}
+if(roll<0.72){
+// بلوک متوسط
+return playWidth*(0.36+Math.random()*0.16);
+}
+// بلوک بلندتر (با حفظ مسیر امن)
+return playWidth*(0.54+Math.random()*0.14);
 }
 
-// مسدود نکردن عرض بلوک‌های هم‌سطح یا نزدیک
-for(const b of bars){
-const nearY=Math.abs(gy-(b.y+b.h/2))<54;
-const overBar=gx+half>b.x&&gx-half<b.x+b.w;
-if(nearY&&overBar)return true;
-}
+// بررسی ایمن بودن محل مکعب سبز: هیچ‌وقت روی خط پرواز دو دیوار و نزدیک سایر مکعب‌های سبز نباشد
+function isSafeGreenSpot(gx,gy,size){
+const leftRail=WALL+BALL_R;
+const rightRail=W-WALL-BALL_R;
+const clearRadius=size/2+BALL_R+12;
 
-// فاصله ایمن از ستاره‌ها و سایر مکعب‌های سبز
-for(const s of starsList){
-if(Math.hypot(gx-s.x,gy-s.y)<44)return true;
-}
-for(const g of greens){
-if(Math.hypot(gx-g.x,gy-g.y)<46)return true;
-}
-
+// دور نگه داشتن از ریل دیوارها تا توپ روی دیوار راه باز داشته باشد
+if(Math.abs(gx-leftRail)<clearRadius||Math.abs(gx-rightRail)<clearRadius){
 return false;
+}
+
+// فاصله عمودی زیاد از سایر مکعب‌های سبز تا دو مکعب سبز نزدیک هم قرار نگیرند
+for(const g of greens){
+if(Math.abs(gy-g.y)<175)return false;
+if(Math.hypot(gx-g.x,gy-g.y)<95)return false;
+}
+
+// فاصله ایمن از بلوک‌های مشکی
+for(const b of bars){
+const nearY=Math.abs(gy-(b.y+b.h/2))<64;
+const overBar=gx+size/2+10>b.x&&gx-size/2-10<b.x+b.w;
+if(nearY&&overBar)return false;
+}
+
+// فاصله ایمن از ستاره‌ها
+for(const s of starsList){
+if(Math.hypot(gx-s.x,gy-s.y)<54)return false;
+}
+
+return true;
 }
 
 function spawnNextWave(){
@@ -332,15 +350,14 @@ const barH=18;
 let fromLeft;
 if(lastSide===-1){
 fromLeft=Math.random()>0.5;
-}else if(Math.random()<0.72){
+}else if(Math.random()<0.68){
 fromLeft=(lastSide===0);
 }else{
 fromLeft=(lastSide===1);
 }
 lastSide=fromLeft?1:0;
 
-const ratio=0.30+Math.random()*0.38;
-const barW=Math.max(54,Math.min(playWidth*0.68,playWidth*ratio));
+const barW=pickBarWidth(playWidth);
 const barY=-28;
 
 if(fromLeft){
@@ -349,32 +366,22 @@ bars.push({x:leftEdge,y:barY,w:barW,h:barH,passed:false});
 bars.push({x:rightEdge-barW,y:barY,w:barW,h:barH,passed:false});
 }
 
+// ستاره طلایی دقیقاً در مرکز افقی و در فضای باز بین موانع
 if(stepCount%2===0){
-const starX=W/2;
-const starY=-98;
-starsList.push({x:starX,y:starY,taken:false});
+starsList.push({x:W/2,y:-98,taken:false});
 }
 
-// مکعب‌های سبز فقط در نقاطی قرار می‌گیرند که مسیر دو دیوار و عبور توپ را مسدود نکنند
-if(score>=15&&stepCount%2===1){
-const count=(score>=22&&Math.random()>0.5)?2:1;
-const safeLeft=WALL+BALL_R*2.4;
-const safeRight=W-WALL-BALL_R*2.4;
-for(let i=0;i<count;i++){
-const gy=-68-i*76;
-let placed=false;
-for(let attempt=0;attempt<8;attempt++){
-const gx=safeLeft+Math.random()*Math.max(20,safeRight-safeLeft);
-if(!isLaneBlocked(gx,gy,22)){
+// فقط یک مکعب سبز در موج‌های فرد از امتیاز ۱۵ به بعد، دور از ریل دیوارها و بدون هم‌پوشانی نزدیک
+if(score>=15&&stepCount%3===1){
+const gy=-65;
+const minX=WALL+BALL_R*2.8;
+const maxX=W-WALL-BALL_R*2.8;
+if(maxX>minX+24){
+for(let attempt=0;attempt<10;attempt++){
+const gx=minX+Math.random()*(maxX-minX);
+if(isSafeGreenSpot(gx,gy,22)){
 greens.push({x:gx,y:gy,size:22});
-placed=true;
 break;
-}
-}
-if(!placed&&Math.abs((W/2)-(WALL+BALL_R))>BALL_R*2.2){
-const midX=W/2;
-if(!isLaneBlocked(midX,gy,22)){
-greens.push({x:midX,y:gy,size:22});
 }
 }
 }
@@ -518,7 +525,7 @@ spawnGap-=previewMove;
 if(spawnGap<=0)spawnGap=spawnNextWave();
 for(let i=bars.length-1;i>=0;i--){bars[i].y+=previewMove;if(bars[i].y>H+60)bars.splice(i,1)}
 for(let i=greens.length-1;i>=0;i--){greens[i].y+=previewMove;if(greens[i].y>H+60)greens.splice(i,1)}
-for(let i=starsList.length-1;i>=0;i--){starsList[i].y+=previewMove;if(starsList[i].y>H+60)starsList.splice(i,1)}
+for(let i=starsList.length-1;i>=0;i--){starsList[i].y+=previewMove;if(starsList[i].y>H+60)starsList[i].splice(i,1)}
 if(Math.sin(now*0.0022)>0.88&&!switching){
 const startX=ballX;
 side=1-side;
