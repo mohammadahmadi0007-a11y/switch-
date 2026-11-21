@@ -587,8 +587,8 @@ trails.push({x1:startX,x2:startX,y:BALL_Y,life:1,moving:true});
 }
 
 if(st==="play"||st==="menu"){
-// سرعت جابه‌جایی افقی توپ کمی کندتر شده تا حرکت بین دو دیوار نرم‌تر و کنترل‌پذیرتر باشد
-const switchSpeed=2150*dt;
+// سرعت جابه‌جایی افقی توپ بیشتر کندتر شده تا پرش بین دو دیوار نرم‌تر باشد
+const switchSpeed=1650*dt;
 if(Math.abs(targetX-ballX)<=switchSpeed){
 if(switching){
 switching=false;
