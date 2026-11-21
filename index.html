@@ -588,7 +588,8 @@ trails.push({x:ballX,y:BALL_Y,r:BALL_R*0.92,life:0.85,color:SKINS[curSkin].glow}
 }
 
 if(st==="play"||st==="menu"){
-const switchSpeed=1650*dt;
+// سرعت جابه‌جایی افقی توپ کمی کمتر شده تا پرش بین دو دیوار نرم‌تر باشد
+const switchSpeed=1380*dt;
 if(Math.abs(targetX-ballX)<=switchSpeed){
 if(switching){
 switching=false;
@@ -613,7 +614,7 @@ ballX=targetX;
 }else{
 ballX+=Math.sign(targetX-ballX)*switchSpeed;
 trailStampTimer+=dt;
-if(trailStampTimer>=0.014){
+if(trailStampTimer>=0.015){
 trailStampTimer=0;
 trails.push({x:ballX,y:BALL_Y,r:BALL_R*0.88,life:0.8,color:SKINS[curSkin].glow});
 }
@@ -717,7 +718,6 @@ for(let i=0;i<starsList.length;i++){
 if(!starsList[i].taken)drawPuffy3DStar(starsList[i].x,starsList[i].y,13);
 }
 
-// رد دایره‌ای نرم و محوشونده پشت توپ بدون باقی ماندن روی صفحه
 for(let i=trails.length-1;i>=0;i--){
 const tr=trails[i];
 tr.life-=4.6*dt;
