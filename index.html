@@ -518,27 +518,23 @@ ctx.fill();
 ctx.restore();
 }
 
-// سایه نرم مشکی دور تا دور بلوک به جای سایه پله‌ای زیر بلوک
 function drawTelegramBlock(x,y,w,h){
 ctx.save();
 
-// سایه نرم و یکدست سیاه در تمام اطراف بلوک
-ctx.shadowColor="rgba(0,0,0,0.34)";
-ctx.shadowBlur=12;
+ctx.shadowColor="rgba(37,99,235,0.26)";
+ctx.shadowBlur=10;
 ctx.shadowOffsetX=0;
-ctx.shadowOffsetY=2;
+ctx.shadowOffsetY=3;
 
-// حاشیه آبی پررنگ و ضخیم‌تر اطراف بلوک
 ctx.fillStyle="#1d4ed8";
-ctx.fillRect(x-1,y-1,w+2,h+2);
+ctx.fillRect(x,y,w,h);
 
-// هسته مشکی اصلی بلوک
+ctx.shadowColor="transparent";
+ctx.shadowBlur=0;
+ctx.shadowOffsetY=0;
+
 ctx.fillStyle="#09090b";
 ctx.fillRect(x+3,y+3,Math.max(0,w-6),Math.max(0,h-6));
-
-// نوار آبی درخشان در لبه پایینی
-ctx.fillStyle="#3b82f6";
-ctx.fillRect(x,y+h-3,w,3);
 
 ctx.restore();
 }
@@ -591,7 +587,8 @@ trails.push({x1:startX,x2:startX,y:BALL_Y,life:1,moving:true});
 }
 
 if(st==="play"||st==="menu"){
-const switchSpeed=2850*dt;
+// سرعت جابه‌جایی افقی توپ کمی کندتر شده تا حرکت بین دو دیوار نرم‌تر و کنترل‌پذیرتر باشد
+const switchSpeed=2150*dt;
 if(Math.abs(targetX-ballX)<=switchSpeed){
 if(switching){
 switching=false;
