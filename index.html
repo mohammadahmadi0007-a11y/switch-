@@ -234,8 +234,9 @@ window.addEventListener("focus",()=>{lastT=0;if(!document.hidden&&snd&&st==="pla
 const cv=document.getElementById("cv"),ctx=cv.getContext("2d",{alpha:false});
 let W=360,H=640,DPR=1,WALL=13,BALL_R=14,BALL_Y=460;
 function resize(){
-W=window.innerWidth>480?480:window.innerWidth;H=window.innerHeight;
-DPR=Math.min(2.5,window.devicePixelRatio||1);
+W=Math.max(280,window.innerWidth>480?480:window.innerWidth);
+H=Math.max(400,window.innerHeight);
+DPR=Math.min(2,window.devicePixelRatio||1);
 cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);
 ctx.setTransform(DPR,0,0,DPR,0,0);
 BALL_Y=H*0.72;
@@ -244,7 +245,7 @@ window.addEventListener("resize",resize);resize();
 
 let st="menu",score=0,side=0,ballX=WALL+BALL_R,targetX=WALL+BALL_R,switching=false;
 let ribbons=[],blocks=[],squares=[],pickups=[],parts=[],floats=[];
-let shake=0,wallPulseL=0,wallPulseR=0,spawnDist=0,stepIdx=0,lastSide=-1,lastT=0,smoothDt=1/60;
+let shake=0,wallPulseL=0,wallPulseR=0,spawnDist=0,stepIdx=0,lastSide=-1,lastT=0;
 
 function resetWorld(){
 side=0;ballX=WALL+BALL_R;targetX=WALL+BALL_R;switching=false;
@@ -253,24 +254,21 @@ shake=0;wallPulseL=0;wallPulseR=0;spawnDist=140;stepIdx=0;lastSide=-1;
 }
 resetWorld();
 
-// تولید موانع تمیز، منظم و متنوع دقیقاً مطابق گیم‌پلی ویدیو
 function spawnStep(){
 stepIdx++;
 const minX=WALL,maxX=W-WALL,playW=maxX-minX;
 const h=20;
 
-// انتخاب سمت بلوک به صورت متنوع ولی با فاصله امن برای پرش
 let fromLeft;
 if(lastSide===-1){
 fromLeft=Math.random()>0.5;
 }else if(Math.random()<0.72){
-fromLeft=(lastSide===0); // تغییر سمت برای ایجاد ریتم سوییچ طبیعی
+fromLeft=(lastSide===0);
 }else{
-fromLeft=(lastSide===1); // تکرار گاه‌به‌گاه همان سمت برای غیرقابل‌پیش‌بینی بودن
+fromLeft=(lastSide===1);
 }
 lastSide=fromLeft?1:0;
 
-// عرض متغیر بلوک (از زبانه کوتاه تا بلوک بلندتر)
 const minW=playW*0.34,maxW=playW*0.64;
 const w=minW+Math.random()*(maxW-minW);
 
@@ -280,19 +278,16 @@ blocks.push({x:minX,y:-30,w,h,passed:false});
 blocks.push({x:maxX-w,y:-30,w,h,passed:false});
 }
 
-// قرار گرفتن ستاره طلایی دقیقاً در مرکز افقی (W/2) و بین دو مانع (مطابق ویدیو)
 if(stepIdx%2===0){
 pickups.push({x:W/2,y:-108,hit:false});
 }
 
-// از امتیاز ۱۵ به بعد (مطابق ثانیه 0:21 ویدیو) مربع‌های سبز نئونی در مسیر عمودی ظاهر می‌شوند
 if(score>=15&&stepIdx%2===1){
 const sqCount=score>=22?2:1;
 for(let k=0;k<sqCount;k++){
 const margin=WALL+BALL_R*2.4;
 const sx=margin+Math.random()*(W-margin*2);
 const sy=-65-k*85;
-// اطمینان از عدم هم‌پوشانی مستقیم با بلوک فعلی
 const onBlock=blocks.some(b=>sx>b.x-16&&sx<b.x+b.w+16&&Math.abs(sy-(b.y+b.h/2))<38);
 if(!onBlock){
 squares.push({x:sx,y:sy,sz:24});
@@ -300,7 +295,6 @@ squares.push({x:sx,y:sy,sz:24});
 }
 }
 
-// فاصله عمودی استاندارد بین ردیف‌ها تا مسیر همیشه منظم و قابل عبور باشد
 return 195;
 }
 
@@ -347,6 +341,7 @@ setTimeout(()=>{document.getElementById("over-screen").classList.remove("hd");sy
 }
 
 function drawStar(x,y,r){
+if(!Number.isFinite(x)||!Number.isFinite(y))return;
 ctx.save();ctx.translate(x,y);ctx.lineJoin="round";
 const pts=[];
 for(let i=0;i<10;i++){const rad=i%2===0?r:r*0.52,a=i*Math.PI/5-Math.PI/2;pts.push({x:Math.cos(a)*rad,y:Math.sin(a)*rad})}
@@ -362,16 +357,17 @@ ctx.restore();
 function loop(now){
 requestAnimationFrame(loop);
 if(!lastT){lastT=now;return}
-const rawDt=Math.min(0.033,Math.max(0.004,(now-lastT)/1000));
+let dt=(now-lastT)/1000;
 lastT=now;
-smoothDt+=(rawDt-smoothDt)*0.25;
-const dt=smoothDt;
+if(!Number.isFinite(dt)||dt<=0)dt=1/60;
+if(dt>0.033)dt=1/60;
 
 updateBGM();
 shake*=Math.pow(0.0002,dt);
 wallPulseL=Math.max(0,wallPulseL-5*dt);
 wallPulseR=Math.max(0,wallPulseR-5*dt);
 
+ctx.setTransform(DPR,0,0,DPR,0,0);
 ctx.fillStyle="#ffffff";
 ctx.fillRect(0,0,W,H);
 
@@ -492,9 +488,9 @@ if(p.y>H+60)pickups.splice(i,1);
 
 if(st==="play"){
 ctx.fillStyle="#0f172a";
-ctx.font="900 46px Tahoma";
+ctx.font="900 46px Arial, sans-serif";
 ctx.textAlign="center";
-ctx.fillText(score,W/2,120);
+ctx.fillText(String(score),W/2,120);
 }
 
 for(let i=0;i<blocks.length;i++){
@@ -522,16 +518,18 @@ for(let i=ribbons.length-1;i>=0;i--){
 const rb=ribbons[i];
 if(!rb.active)rb.l-=2.8*dt;
 if(rb.l<=0){ribbons.splice(i,1);continue}
+if(Math.abs(rb.x1-rb.x0)>1){
 const grd=ctx.createLinearGradient(rb.x0,rb.y,rb.x1,rb.y);
 grd.addColorStop(0,"rgba(239,68,68,0)");
 grd.addColorStop(1,sk.glow);
 ctx.save();
-ctx.globalAlpha=rb.l*0.42;
+ctx.globalAlpha=Math.max(0,Math.min(1,rb.l*0.42));
 ctx.strokeStyle=grd;
 ctx.lineWidth=BALL_R*1.55;
 ctx.lineCap="round";
 ctx.beginPath();ctx.moveTo(rb.x0,rb.y);ctx.lineTo(rb.x1,rb.y);ctx.stroke();
 ctx.restore();
+}
 }
 
 for(let i=parts.length-1;i>=0;i--){
@@ -539,7 +537,7 @@ const pt=parts[i];
 pt.x+=pt.vx*dt;pt.y+=pt.vy*dt;
 pt.l-=(pt.ring?1.6:1.9)*dt;
 if(pt.l<=0){parts.splice(i,1);continue}
-ctx.fillStyle=pt.c;ctx.globalAlpha=pt.l;
+ctx.fillStyle=pt.c;ctx.globalAlpha=Math.max(0,Math.min(1,pt.l));
 ctx.beginPath();ctx.arc(pt.x,pt.y,pt.sz,0,6.28);ctx.fill();
 }
 ctx.globalAlpha=1;
@@ -559,8 +557,8 @@ for(let i=floats.length-1;i>=0;i--){
 const f=floats[i];
 f.y-=55*dt;f.l-=1.5*dt;
 if(f.l<=0){floats.splice(i,1);continue}
-ctx.globalAlpha=f.l;ctx.fillStyle=f.col;
-ctx.font="bold 19px Tahoma";ctx.textAlign="center";
+ctx.globalAlpha=Math.max(0,Math.min(1,f.l));ctx.fillStyle=f.col;
+ctx.font="900 18px Arial, sans-serif";ctx.textAlign="center";
 ctx.fillText(f.txt,f.x,f.y);
 }
 ctx.globalAlpha=1;
