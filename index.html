@@ -114,14 +114,48 @@ if(window.Bale&&Bale.WebApp&&Bale.WebApp.openLink)Bale.WebApp.openLink(CHANNEL_U
 else window.open(CHANNEL_URL,"_blank");
 }
 
-let usr={id:localStorage.getItem("sw_uid")||("u_"+Math.floor(1e5+Math.random()*9e5)),name:"بازیکن مهمان",photo:""};
-localStorage.setItem("sw_uid",usr.id);
+let savedUid=null;
 try{
-const raw=(location.hash||"")+"&"+(location.search||"");
-const m=raw.match(/(?:tgWebAppData|baleWebAppData)=([^&]+)/);
-if(m&&m[1]){const u=JSON.parse(new URLSearchParams(decodeURIComponent(m[1])).get("user"));if(u&&u.id){usr.id="b_"+u.id;usr.name=[u.first_name,u.last_name].filter(Boolean).join(" ")||"کاربر بله";if(u.photo_url)usr.photo=u.photo_url}}
-if(window.Bale&&Bale.WebApp){Bale.WebApp.ready();Bale.WebApp.expand();const u=Bale.WebApp.initDataUnsafe&&Bale.WebApp.initDataUnsafe.user;if(u&&u.id){usr.id="b_"+u.id;usr.name=[u.first_name,u.last_name].filter(Boolean).join(" ")||"کاربر بله";if(u.photo_url)usr.photo=u.photo_url}}
+  savedUid=localStorage.getItem("game_global_uid");
+  if(!savedUid){
+    savedUid="u_"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    localStorage.setItem("game_global_uid",savedUid);
+  }
+}catch(e){
+  savedUid="u_"+Math.floor(1e5+Math.random()*9e5);
+}
+
+let usr={id:savedUid,name:"بازیکن مهمان",photo:""};
+try{
+  usr.name=localStorage.getItem("game_global_name")||"بازیکن مهمان";
+  usr.photo=localStorage.getItem("game_global_photo")||"";
 }catch(e){}
+
+function detectBaleUser(){
+  try{
+    const raw=(location.hash||"")+"&"+(location.search||"");
+    const m=raw.match(/(?:tgWebAppData|baleWebAppData)=([^&]+)/);
+    let u=null;
+    if(m&&m[1])u=JSON.parse(new URLSearchParams(decodeURIComponent(m[1])).get("user"));
+    if(window.Bale&&Bale.WebApp){
+      Bale.WebApp.ready();
+      Bale.WebApp.expand();
+      if(Bale.WebApp.initDataUnsafe&&Bale.WebApp.initDataUnsafe.user)u=Bale.WebApp.initDataUnsafe.user;
+    }
+    if(u&&u.id){
+      usr.id="b_"+u.id;
+      const fullName=[u.first_name,u.last_name].filter(Boolean).join(" ").trim();
+      if(fullName)usr.name=fullName;
+      if(u.photo_url)usr.photo=u.photo_url;
+      try{
+        localStorage.setItem("game_global_uid",usr.id);
+        localStorage.setItem("game_global_name",usr.name);
+        if(usr.photo)localStorage.setItem("game_global_photo",usr.photo);
+      }catch(e){}
+    }
+  }catch(e){}
+}
+detectBaleUser();
 
 const GRADS=["linear-gradient(135deg,#06b6d4,#3b82f6)","linear-gradient(135deg,#ec4899,#8b5cf6)","linear-gradient(135deg,#f59e0b,#ef4444)","linear-gradient(135deg,#10b981,#059669)","linear-gradient(135deg,#6366f1,#a855f7)"];
 function avHtml(p){
@@ -130,10 +164,13 @@ const bg=GRADS[s%GRADS.length],ch=(p.name||"؟").trim().charAt(0);
 return p.photo?`<div class="av" style="background:${bg}"><img src="${p.photo}" onerror="this.parentNode.innerText='${ch}'"></div>`:`<div class="av" style="background:${bg}">${ch}</div>`;
 }
 
-let best=parseInt(localStorage.getItem("sw_best")||"0",10);
-let stars=parseInt(localStorage.getItem("sw_stars")||"0",10);
-let owned=JSON.parse(localStorage.getItem("sw_owned")||"[0]");
-let curSkin=parseInt(localStorage.getItem("sw_skin")||"0",10);
+let best=0,stars=0,owned=[0],curSkin=0;
+try{
+  best=parseInt(localStorage.getItem("sw_best")||"0",10)||0;
+  stars=parseInt(localStorage.getItem("sw_stars")||"0",10)||0;
+  owned=JSON.parse(localStorage.getItem("sw_owned")||"[0]");
+  curSkin=parseInt(localStorage.getItem("sw_skin")||"0",10)||0;
+}catch(e){}
 let shopOrigin="start";
 let lb=[];
 
@@ -147,7 +184,7 @@ const SKINS=[
 ];
 
 function updStars(){
-localStorage.setItem("sw_stars",stars);
+try{localStorage.setItem("sw_stars",stars);}catch(e){}
 document.getElementById("hud-stars").innerText=stars;
 document.getElementById("menu-stars").innerText=stars;
 document.getElementById("over-stars").innerText=stars;
@@ -180,22 +217,44 @@ return `<div class="sk-item ${act?'active':''}" onclick="pickSkin(${i})">
 }).join("");
 }
 function pickSkin(i){
-if(owned.includes(i)){curSkin=i;localStorage.setItem("sw_skin",i);beep(620,.08);renderShop();toast("توپ "+SKINS[i].name+" فعال شد!")}
+if(owned.includes(i)){curSkin=i;try{localStorage.setItem("sw_skin",i);}catch(e){}beep(620,.08);renderShop();toast("توپ "+SKINS[i].name+" فعال شد!")}
 else if(stars>=SKINS[i].cost){
 stars-=SKINS[i].cost;owned.push(i);curSkin=i;
-localStorage.setItem("sw_owned",JSON.stringify(owned));localStorage.setItem("sw_skin",i);
+try{localStorage.setItem("sw_owned",JSON.stringify(owned));localStorage.setItem("sw_skin",i);}catch(e){}
 beep(800,.15);renderShop();toast("توپ "+SKINS[i].name+" خریداری شد!");
 }else toast("ستاره کافی نداری! ⭐");
 }
 
 async function syncLB(sc){
+detectBaleUser();
 try{
-const r=await fetch(DB);let d=await r.json();if(!Array.isArray(d))d=[];
+const r=await fetch(DB+"?t="+Date.now());
+let d=await r.json();
+if(!Array.isArray(d))d=[];
+const map=new Map();
+for(const item of d){
+  if(!item||!item.id)continue;
+  if(!map.has(item.id)||item.score>map.get(item.id).score)map.set(item.id,item);
+}
+d=Array.from(map.values());
+const finalScore=Math.max(sc||0,best);
 const i=d.findIndex(x=>x.id===usr.id);
-if(i>-1){if(sc>d[i].score)d[i].score=sc;if(usr.name!=="بازیکن مهمان")d[i].name=usr.name;if(usr.photo)d[i].photo=usr.photo;if(d[i].score>best){best=d[i].score;localStorage.setItem("sw_best",best)}}
-else if(sc>0){d.push({id:usr.id,name:usr.name,photo:usr.photo,score:sc})}
-d.sort((a,b)=>b.score-a.score);d=d.slice(0,25);lb=d;
-if(sc>0)await fetch(DB,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(d)});
+let changed=false;
+if(i>-1){
+  if(finalScore>d[i].score){d[i].score=finalScore;changed=true;}
+  if(usr.name!=="بازیکن مهمان"&&d[i].name!==usr.name){d[i].name=usr.name;changed=true;}
+  if(usr.photo&&d[i].photo!==usr.photo){d[i].photo=usr.photo;changed=true;}
+  if(d[i].score>best){best=d[i].score;try{localStorage.setItem("sw_best",best);}catch(e){}}
+}else if(finalScore>0){
+  d.push({id:usr.id,name:usr.name,photo:usr.photo,score:finalScore});
+  changed=true;
+}
+d.sort((a,b)=>b.score-a.score);
+d=d.slice(0,25);
+lb=d;
+if(changed){
+  await fetch(DB,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(d)});
+}
 }catch(e){}
 document.getElementById("hud-best").innerText=best;
 const rk=lb.findIndex(x=>x.id===usr.id);
@@ -461,7 +520,7 @@ beep(135,.3,"sawtooth",0.14);
 spawnScatter(ballX,BALL_Y,SKINS[curSkin].core,24,180);
 if(score>best){
 best=score;
-localStorage.setItem("sw_best",best);
+try{localStorage.setItem("sw_best",best);}catch(e){}
 }
 updStars();
 document.getElementById("end-score").innerText=score;
@@ -577,7 +636,7 @@ spawnGap-=previewMove;
 if(spawnGap<=0)spawnGap=spawnNextWave();
 for(let i=bars.length-1;i>=0;i--){bars[i].y+=previewMove;if(bars[i].y>H+60)bars.splice(i,1)}
 for(let i=greens.length-1;i>=0;i--){greens[i].y+=previewMove;if(greens[i].y>H+60)greens.splice(i,1)}
-for(let i=starsList.length-1;i>=0;i--){starsList[i].y+=previewMove;if(starsList[i].y>H+60)starsList[i].splice(i,1)}
+for(let i=starsList.length-1;i>=0;i--){starsList[i].y+=previewMove;if(starsList[i].y>H+60)starsList.splice(i,1)}
 if(Math.sin(now*0.0022)>0.88&&!switching){
 side=1-side;
 targetX=side===0?WALL+BALL_R:W-WALL-BALL_R;
@@ -588,7 +647,6 @@ trails.push({x:ballX,y:BALL_Y,r:BALL_R*0.92,life:0.85,color:SKINS[curSkin].glow}
 }
 
 if(st==="play"||st==="menu"){
-// سرعت جابه‌جایی افقی توپ کمی کمتر شده تا پرش بین دو دیوار نرم‌تر باشد
 const switchSpeed=1380*dt;
 if(Math.abs(targetX-ballX)<=switchSpeed){
 if(switching){
@@ -787,5 +845,6 @@ else if(navigator.share)navigator.share({title:"SWITCH PRO",text:txt,url:BOT_LIN
 else window.open(shareUrl,"_blank");
 }
 </script>
+<script src="https://tapi.bale.ai/miniapp.js" async onload="syncLB(0)"></script>
 </body>
 </html>
